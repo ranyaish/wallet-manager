@@ -25,12 +25,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
 
       - name: Install deps
         run: npm install
 
-      # מתקין את תוסף הריאקט בסביבת ה-CI גם אם הוא לא מופיע ב-repo
       - name: Ensure @vitejs/plugin-react is available
         run: npm i -D @vitejs/plugin-react@^4.3.1
 
