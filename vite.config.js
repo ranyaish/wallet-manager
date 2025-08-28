@@ -11,4 +11,5 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: { port: 5173 },
-  base: "/<wallt-manager>/", // <<< repo name });
+  base: "/wallet-manager/",  // <<< חשוב מאוד ל-GitHub Pages
+});
