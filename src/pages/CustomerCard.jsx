@@ -1,93 +1,99 @@
+// src/pages/CustomerCard.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
+import { getCustomer, fetchLedger } from "../lib/walletApi.js";
 
-export default function CustomerCard() {
-  const { id } = useParams(); // מזהה הלקוח ב־URL
+export default function CustomerCard({ customerId }) {
   const [customer, setCustomer] = useState(null);
-  const [transactions, setTransactions] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // שליפת פרטי לקוח
-    const fetchCustomer = async () => {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (error) console.error(error);
-      else setCustomer(data);
-    };
+    let cancelled = false;
 
-    // שליפת פעולות מה־ledger
-    const fetchTransactions = async () => {
-      const { data, error } = await supabase
-        .from("ledger")
-        .select("*")
-        .eq("customer_id", id)
-        .order("created_at", { ascending: false });
-      if (error) console.error(error);
-      else setTransactions(data);
-    };
+    async function load() {
+      setLoading(true);
+      try {
+        const [c, tx] = await Promise.all([
+          getCustomer(customerId),
+          fetchLedger(customerId),
+        ]);
+        if (!cancelled) {
+          setCustomer(c || null);
+          setRows(tx || []);
+        }
+      } catch (e) {
+        console.error(e);
+        alert(e.message || String(e));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
 
-    fetchCustomer();
-    fetchTransactions();
-  }, [id]);
+    load();
+    return () => { cancelled = true; };
+  }, [customerId]);
 
   return (
-    <div className="p-6">
-      <Link to="/" className="text-blue-600 underline">
-        ← חזרה לרשימת לקוחות
-      </Link>
+    <div dir="rtl" className="p-4 max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-3">
+        <button
+          className="px-3 py-2 border rounded-xl"
+          onClick={() => (window.location.hash = "#/")}
+        >
+          ← חזרה לרשימה
+        </button>
+        <h1 className="text-2xl font-bold">כרטיס לקוח</h1>
+      </div>
 
       {customer ? (
-        <div className="mt-4">
-          <h1 className="text-2xl font-bold mb-2">
-            כרטיס לקוח – {customer.name}
-          </h1>
-          <p className="text-gray-700 mb-6">טלפון: {customer.phone}</p>
+        <div className="bg-white border rounded-xl p-4 mb-4">
+          <div className="text-lg font-semibold">{customer.full_name}</div>
+          <div className="text-gray-700">טלפון: {customer.phone || "—"}</div>
+          {customer.email && <div className="text-gray-700">אימייל: {customer.email}</div>}
+          {customer.notes && <div className="text-gray-700">הערות: {customer.notes}</div>}
         </div>
       ) : (
-        <p>טוען נתוני לקוח...</p>
+        <div className="text-gray-600 mb-4">טוען פרטי לקוח…</div>
       )}
 
-      <h2 className="text-xl font-semibold mb-3">פעולות</h2>
-      <table className="min-w-full bg-white border rounded-lg shadow">
-        <thead className="bg-gray-200 text-gray-700">
-          <tr>
-            <th className="px-4 py-2 border">תאריך</th>
-            <th className="px-4 py-2 border">סכום</th>
-            <th className="px-4 py-2 border">אמצעי</th>
-            <th className="px-4 py-2 border">הערה</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transactions.length > 0 ? (
-            transactions.map((t) => (
-              <tr key={t.id} className="text-center">
-                <td className="px-4 py-2 border">
-                  {new Date(t.created_at).toLocaleString("he-IL")}
-                </td>
-                <td
-                  className={`px-4 py-2 border ${
-                    t.amount > 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {t.amount} ₪
-                </td>
-                <td className="px-4 py-2 border">{t.method}</td>
-                <td className="px-4 py-2 border">{t.note || "-"}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="4" className="px-4 py-2 border text-gray-500">
-                אין פעולות להצגה
-              </td>
+      <h2 className="text-xl font-semibold mb-2">תנועות</h2>
+
+      <div className="overflow-auto border rounded-xl bg-white">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-50">
+            <tr className="text-right">
+              <th className="p-2">תאריך ביצוע</th>
+              <th className="p-2">סוג</th>
+              <th className="p-2">סכום</th>
+              <th className="p-2">אמצעי</th>
+              <th className="p-2">אסמכתא</th>
+              <th className="p-2">הערה</th>
+              <th className="p-2">בוצע ע״י</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="7" className="p-4">טוען…</td></tr>
+            ) : rows.length === 0 ? (
+              <tr><td colSpan="7" className="p-4">אין תנועות ללקוח זה</td></tr>
+            ) : (
+              rows.map((t) => (
+                <tr key={t.id} className="text-right border-t">
+                  <td className="p-2">{new Date(t.executed_at || t.created_at).toLocaleString("he-IL")}</td>
+                  <td className="p-2">{t.kind === "topup" ? "טעינה" : "משיכה"}</td>
+                  <td className={`p-2 font-semibold ${t.kind === "topup" ? "text-green-700" : "text-red-700"}`}>
+                    ₪{Number(t.amount).toFixed(2)}
+                  </td>
+                  <td className="p-2">{t.method || "—"}</td>
+                  <td className="p-2">{t.reference || "—"}</td>
+                  <td className="p-2">{t.notes || "—"}</td>
+                  <td className="p-2">{t.operator || "—"}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
