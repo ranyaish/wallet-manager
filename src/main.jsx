@@ -1,37 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import WalletPage from "./pages/WalletPage.jsx";
-import CustomerDetails from "./pages/CustomerDetails.jsx";
+import CustomerCard from "./pages/CustomerCard.jsx";
 
-console.log("[BOOT] main.jsx loaded"); // דיבוג
+console.log("[BOOT] main.jsx loaded");
+
+// הוק קטן שמאזין לשינויים ב-hash ומכריח רנדר
+function useHash() {
+  const [hash, setHash] = useState(window.location.hash || "#/");
+  useEffect(() => {
+    const onHash = () => setHash(window.location.hash || "#/");
+    window.addEventListener("hashchange", onHash);
+    window.addEventListener("popstate", onHash);
+    return () => {
+      window.removeEventListener("hashchange", onHash);
+      window.removeEventListener("popstate", onHash);
+    };
+  }, []);
+  return hash;
+}
 
 function App() {
-  const hash = window.location.hash || "#/";
+  const hash = useHash();
+
+  // כרטיס לקוח: #/customer/<id>
   if (hash.startsWith("#/customer/")) {
-    const id = hash.replace("#/customer/", "");
-    return <CustomerDetails customerId={id} />;
+    const id = decodeURIComponent(hash.slice("#/customer/".length));
+    return <CustomerCard customerId={id} />;
   }
+
+  // ברירת מחדל: רשימת יתרות
   return <WalletPage />;
 }
 
 const rootEl = document.getElementById("root");
-if (!rootEl) {
-  console.error("Root element #root not found");
-} else {
-  ReactDOM.createRoot(rootEl).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-}
-
-import CustomerCard from "./pages/CustomerCard.jsx";
-
-function App() {
-  const hash = window.location.hash || "#/";
-  if (hash.startsWith("#/customer/")) {
-    const id = hash.replace("#/customer/", "");
-    return <CustomerCard customerId={id} />;
-  }
-  return <WalletPage />;
-}
+ReactDOM.createRoot(rootEl).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
