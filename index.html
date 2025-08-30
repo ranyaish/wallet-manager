@@ -1,15 +1,11 @@
 <!doctype html>
 <html lang="he" dir="rtl">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ניהול יתרות לקוחות</title>
 
-    <!-- פונט עברי -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Tailwind CDN -->
+    <!-- Tailwind CDN לעיצוב בלבד (לא גורם לדף לבן אם חסר) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       :root { font-family: "Rubik", system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", Arial; }
@@ -17,15 +13,21 @@
       table { border-collapse: separate; border-spacing: 0; }
     </style>
 
-    <!-- לחלופין ל-.env -->
-<script>
-  window.__SUPABASE_URL__ = "https://ylqpxwgchwalcblfipsu.supabase.co"
-  window.__SUPABASE_ANON_KEY__ = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlscXB4d2djaHdhbGNibGZpcHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTk3MzQsImV4cCI6MjA3MTM5NTczNH0.bHNNmDlvUj-K1KFYZ1eNSKdzB_EpLmf2KiRhYTrWVPM";
-</script>
-    
+    <!-- Fallback ל־ENV (לא חובה אם ה-Secrets נכנסים בבילד, אבל מונע מסך לבן אם לא) -->
+    <script>
+      window.__SUPABASE_URL__ = window.__SUPABASE_URL__ || "";       // מומלץ למלא לערך האמיתי לבדיקה
+      window.__SUPABASE_ANON_KEY__ = window.__SUPABASE_ANON_KEY__ || "";
+    </script>
   </head>
-  <body class="text-gray-900">
-    <div id="root"></div>
+  <body>
+    <!-- חשוב: אותו id כמו ב-main.jsx -->
+    <div id="root">
+      <!-- fallback טקסטואלי כדי שלא יהיה מסך לבן גם אם React לא הורכב -->
+      <div class="p-4 text-gray-600">טוען אפליקציה…</div>
+    </div>
+
+    <!-- חשוב: Vite יחליף את זה אוטומטית לקבצי /assets בבילד.
+         בזמן פריסה ב-GitHub Pages זה יעבוד כל עוד base=/wallet-manager/ -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
