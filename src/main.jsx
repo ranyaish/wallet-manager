@@ -24,3 +24,14 @@ if (!rootEl) {
     </React.StrictMode>
   );
 }
+
+import CustomerCard from "./pages/CustomerCard.jsx";
+
+function App() {
+  const hash = window.location.hash || "#/";
+  if (hash.startsWith("#/customer/")) {
+    const id = hash.replace("#/customer/", "");
+    return <CustomerCard customerId={id} />;
+  }
+  return <WalletPage />;
+}
