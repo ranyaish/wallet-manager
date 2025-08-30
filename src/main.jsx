@@ -27,3 +27,30 @@ export function RouterProvider() {
   if (route.name === "customer") return <CustomerDetails customerId={route.params.id} />;
   return <WalletPage />;
 }
+import React from "react";
+import ReactDOM from "react-dom/client";
+import WalletPage from "./pages/WalletPage.jsx";
+import CustomerDetails from "./pages/CustomerDetails.jsx";
+
+console.log("[BOOT] main.jsx loaded"); // דיבוג
+
+function App() {
+  const hash = window.location.hash || "#/";
+  if (hash.startsWith("#/customer/")) {
+    const id = hash.replace("#/customer/", "");
+    return <CustomerDetails customerId={id} />;
+  }
+  return <WalletPage />;
+}
+
+// ודא שה-id תואם ל-index.html
+const rootEl = document.getElementById("root");
+if (!rootEl) {
+  console.error("Root element #root not found");
+} else {
+  ReactDOM.createRoot(rootEl).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
