@@ -63,7 +63,15 @@ export default function WalletPage() {
               <tr><td colSpan="5" className="p-4">אין נתונים</td></tr>
             ) : rows.map(r => (
               <tr key={r.customer_id} className="border-t">
-                <td className="p-2">{r.full_name ?? "—"}</td>
+                <td className="p-2">
+  <a
+    href={`#/customer/${r.customer_id}`}
+    className="text-blue-600 underline"
+    title="פתח כרטיס לקוח"
+  >
+    {r.full_name ?? "—"}
+  </a>
+</td>
                 <td className="p-2">{r.phone ?? "—"}</td>
                 <td className="p-2 font-bold">₪{Number(r.balance ?? 0).toFixed(2)}</td>
                 <td className="p-2">{r.last_executed_at ? new Date(r.last_executed_at).toLocaleString("he-IL") : "—"}</td>
