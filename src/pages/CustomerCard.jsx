@@ -97,3 +97,4 @@ export default function CustomerCard({ customerId }) {
     </div>
   );
 }
+
