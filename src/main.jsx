@@ -1,40 +1,41 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
+import { supabase } from "./lib/supabaseClient.js";
 import WalletPage from "./pages/WalletPage.jsx";
 import CustomerCard from "./pages/CustomerCard.jsx";
+import Login from "./pages/Login.jsx";
 
-console.log("[BOOT] main.jsx loaded");
-
-// הוק קטן שמאזין לשינויים ב-hash ומכריח רנדר
 function useHash() {
   const [hash, setHash] = useState(window.location.hash || "#/");
   useEffect(() => {
     const onHash = () => setHash(window.location.hash || "#/");
     window.addEventListener("hashchange", onHash);
-    window.addEventListener("popstate", onHash);
-    return () => {
-      window.removeEventListener("hashchange", onHash);
-      window.removeEventListener("popstate", onHash);
-    };
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
   return hash;
 }
 
 function App() {
+  const [user, setUser] = useState(null);
   const hash = useHash();
 
-  // כרטיס לקוח: #/customer/<id>
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.onAuthStateChange((_event, session) =>
+      setUser(session?.user ?? null)
+    );
+  }, []);
+
+  if (!user) return <Login onLogin={setUser} />;
+
   if (hash.startsWith("#/customer/")) {
     const id = decodeURIComponent(hash.slice("#/customer/".length));
     return <CustomerCard customerId={id} />;
   }
-
-  // ברירת מחדל: רשימת יתרות
   return <WalletPage />;
 }
 
-const rootEl = document.getElementById("root");
-ReactDOM.createRoot(rootEl).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
